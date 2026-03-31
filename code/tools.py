@@ -4,17 +4,28 @@ from sklearn.preprocessing import MinMaxScaler
 import joblib
 
 
-TRAIN_SPLIT = 0.8
-VAL_SPLIT = 0.95
-RANDOM_STATE = 13
-TIME_STEP = 15
-CURRENT_DATE = "2026-03-29"
-MODEL_PATH = "../models"
-DATA_PATH = "../data"
-IMAGE_PATH = "../visualisations"
+TRAIN_SPLIT = 0.8                # 80% of data for training
+VAL_SPLIT = 0.95                 # 15% of data for validation
+RANDOM_STATE = 13                # Seed
+TIME_STEP = 15                   # Size of the sliding window (days)
+CURRENT_DATE = "2026-03-29"      # Data is up to this day 
+MODEL_PATH = "../models"         # Directory to save all models
+DATA_PATH = "../data"            # Directory to save all data
+IMAGE_PATH = "../visualisations" # Directory to save all plots
 
 
 def create_windows(data, time_step=TIME_STEP):
+  """
+    Creates sliding windows.
+
+    Args:
+        data (array / numpy-array): the data that needs to be divided into windows.
+        time_step (int): the size of the sliding window, default = TIME_STEP
+
+    Returns:
+        X (numpy-array): array with shape = (num of objects, time_step, num of features).
+        y (numpy-array): array with shape = num of objects
+  """
   data = np.array(data)
   X, y = [], []
 
@@ -29,6 +40,21 @@ def create_windows(data, time_step=TIME_STEP):
 
 
 def split_and_scale_data(X, y, train_split, val_split):
+  """
+    Splits data into train/val/test. scales it and saves scalers.
+
+    Args:
+        X (numpy-array): array with shape = (num of objects, time_step, num of features).
+        y (numpy-array): array with shape = num of objects
+
+    Returns:
+        X_train_scaled (numpy-array): array with shape = (num of objects, time_step, num of features).
+        X_val_scaled (numpy-array): array with shape = (num of objects, time_step, num of features).
+        X_test_scaled (numpy-array): array with shape = (num of objects, time_step, num of features).
+        y_train_scaled (numpy-array): array with shape = num of objects
+        y_val_scaled (numpy-array): array with shape = num of objects
+        y_test_scaled (numpy-array): array with shape = num of objects
+  """
   train_inx = int(train_split * len(X))
   val_inx = int(val_split * len(X))
 
