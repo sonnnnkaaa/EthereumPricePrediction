@@ -39,7 +39,7 @@ def create_windows(data, time_step=TIME_STEP):
   return X, y
 
 
-def split_and_scale_data(X, y, train_split, val_split):
+def split_and_scale_data(X, y, train_split, val_split, save_scaler=True):
   """
     Splits data into train/val/test. scales it and saves scalers.
 
@@ -61,18 +61,27 @@ def split_and_scale_data(X, y, train_split, val_split):
   X_train, X_val, X_test = X[:train_inx], X[train_inx:val_inx], X[val_inx:]
   y_train, y_val, y_test = y[:train_inx], y[train_inx:val_inx], y[val_inx:]
 
-  scaler_X = MinMaxScaler()
-  scaler_y = MinMaxScaler()
+  scaler_X, scaler_y = None, None
+  
+  if save_scaler:
+    scaler_X = MinMaxScaler()
+    scaler_y = MinMaxScaler()
+    X_train_scaled = scaler_X.fit_transform(X_train.reshape(-1, 1)).reshape(-1, TIME_STEP, 1)
+    y_train_scaled = scaler_y.fit_transform(y_train.reshape(-1, 1)).reshape(-1)
+    joblib.dump(scaler_X, f"{MODEL_PATH}/scaler_X.save")
+    joblib.dump(scaler_y, f"{MODEL_PATH}/scaler_y.save")
+  else:
+    scaler_X = joblib.load(f"{MODEL_PATH}/scaler_X.save")
+    scaler_y = joblib.load(f"{MODEL_PATH}/scaler_y.save")
 
-  X_train_scaled = scaler_X.fit_transform(X_train.reshape(-1, 1)).reshape(-1, TIME_STEP, 1)
+  X_train_scaled = scaler_X.transform(X_train.reshape(-1, 1)).reshape(-1, TIME_STEP, 1)
+  y_train_scaled = scaler_y.transform(y_train.reshape(-1, 1)).reshape(-1)
+
   X_val_scaled = scaler_X.transform(X_val.reshape(-1, 1)).reshape(-1, TIME_STEP, 1)
   X_test_scaled = scaler_X.transform(X_test.reshape(-1, 1)).reshape(-1, TIME_STEP, 1)
-
-  y_train_scaled = scaler_y.fit_transform(y_train.reshape(-1, 1)).reshape(-1)
+  
   y_val_scaled = scaler_y.transform(y_val.reshape(-1, 1)).reshape(-1)
   y_test_scaled = scaler_y.transform(y_test.reshape(-1, 1)).reshape(-1)
 
-  joblib.dump(scaler_X, f"{MODEL_PATH}/scaler_X.save")
-  joblib.dump(scaler_y, f"{MODEL_PATH}/scaler_y.save")
 
   return X_train_scaled, X_val_scaled, X_test_scaled, y_train_scaled, y_val_scaled, y_test_scaled
